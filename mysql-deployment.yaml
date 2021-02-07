@@ -1,0 +1,50 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql/mysql-cluster:8.0.22
+        imagePullPolicy: IfNotPresent
+        name: mysql
+        env:
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: "true"
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: my-cnf
+          mountPath: /etc/my.cnf
+          subPath: my.cnf
+      - image: mysql/mysql-cluster:8.0.22
+        imagePullPolicy: IfNotPresent
+        name: mysql-sidecar
+        command: ["/bin/bash", "-ecx", "while [ 0 -le 1 ]; do sleep 1; done"]
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: my-cnf
+          mountPath: /etc/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+      - name: my-cnf
+        configMap:
+          name: mysql-configmap
+          items:
+            - key: my.cnf
+              path: my.cnf

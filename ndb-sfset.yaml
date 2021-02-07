@@ -1,0 +1,40 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: ndb
+  labels:
+    app: ndb
+spec:
+  selector:
+    matchLabels:
+      app: ndb
+  serviceName: ndb-svc
+  template:
+    metadata:
+      labels:
+        app: ndb
+    spec:
+      containers:
+      - image: mysql/mysql-cluster:8.0.22
+        imagePullPolicy: IfNotPresent
+        name: ndb
+        command: ["/bin/bash"]
+        args:
+          -  -ecx 
+          - /usr/sbin/ndbd -c mgmd-0.ndb-svc.default.svc.cluster.local --initial --nodaemon -v
+        ports:
+        - containerPort: 1186
+          name: ndb
+        volumeMounts:
+        - name: ndb-persistent-storage
+          mountPath: /var/lib/ndb
+        - name: config-volume
+          mountPath: /var/lib/ndb/config
+      volumes:
+      - name: ndb-persistent-storage
+        persistentVolumeClaim:
+          claimName: ndb-pv-claim
+      - name: config-volume
+        configMap:
+          name: ndb-configmap
+    

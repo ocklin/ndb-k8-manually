@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  labels:
+    app: ndb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mysql-configmap
+  namespace: default
+data:
+  my.cnf: |
+    [mysqld]
+    user=mysql
+    ndbcluster
+    ndb-connectstring=mgmd-0.ndb-svc.default.svc.cluster.local
+    datadir=/var/lib/mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3306
+  selector:
+    app: mysql

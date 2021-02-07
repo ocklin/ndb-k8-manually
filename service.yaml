@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ndb-svc
+  labels:
+    app: ndb
+spec:
+  ports:
+  - port: 1186
+  selector:
+    app: ndb
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mgmd-ext-svc
+  labels:
+    app: ndb
+    tier: mgmd
+spec:
+  ports:
+  - port: 1186
+  selector:
+    app: ndb
+    tier: mgmd
+  type: LoadBalancer

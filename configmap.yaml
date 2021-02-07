@@ -1,0 +1,25 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ndb-configmap
+  namespace: default
+data:
+  config.ini: |
+      [ndbd default]
+      NoOfReplicas=1
+
+      [tcp default]
+      AllowUnresolvedHostnames=1
+
+      [ndb_mgmd]
+      hostname=mgmd-0.ndb-svc.default.svc.cluster.local
+      PortNumber=1186
+
+      [ndbd]
+      nodeid=4
+      ServerPort=1186
+      hostname=ndb-0.ndb-svc.default.svc.cluster.local
+
+      [mysqld]
+      [mysqld]
+

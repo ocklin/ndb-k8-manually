@@ -1,0 +1,41 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: mgmd
+  labels:
+    app: ndb
+spec:
+  selector:
+    matchLabels:
+      app: ndb
+      tier: mgmd
+  serviceName: ndb-svc
+  template:
+    metadata:
+      labels:
+        app: ndb
+        tier: mgmd
+    spec:
+      containers:
+        - image: mysql/mysql-cluster:8.0.22
+          imagePullPolicy: IfNotPresent
+          name: mgmd
+          command: ["/bin/bash"]
+          args:
+            -  -ecx 
+            - /usr/sbin/ndb_mgmd -f /var/lib/ndb/config/config.ini --configdir=/var/lib/ndb --initial --nodaemon --config-cache=0 -v
+          ports:
+          - containerPort: 1186
+            name: mgmd
+          volumeMounts:
+          - name: mgmd-persistent-storage
+            mountPath: /var/lib/ndb
+          - name: config-ini
+            mountPath: /var/lib/ndb/config
+      volumes:
+      - name: mgmd-persistent-storage
+        persistentVolumeClaim:
+          claimName: ndb-pv-claim
+      - name: config-ini
+        configMap:
+          name: ndb-configmap
